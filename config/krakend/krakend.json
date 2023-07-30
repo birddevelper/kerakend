@@ -1,0 +1,78 @@
+{
+  "$schema": "https://www.krakend.io/schema/v3.json",
+  "version": 3,
+  "name": "Paxi - API Gateway",
+  "timeout": "3000ms",
+  "cache_ttl": "300s",
+  "extra_config": {
+    "qos/ratelimit/service": {
+      "max_rate": 3,
+      "capacity": 3,
+      "client_max_rate": 3,
+      "strategy": "header",
+      "key": "device-token",
+      "client_capacity": 3
+    },
+    "router": {
+      "disable_gzip": false
+    }
+  },
+  "output_encoding": "json",
+  "port": 8080,
+  "debug_endpoint": true,
+  "endpoints": [
+    {
+      "endpoint": "/v1/login",
+      "method": "POST",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/login",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "disable_host_sanitize": false,
+          "host": [
+            "http://127.0.0.1:3000"
+          ]
+        }
+      ],
+      "input_query_strings": []
+    },
+    {
+      "endpoint": "/v1/itmes",
+      "method": "GET",
+      "extra_config": {
+        "auth/validator": {
+            "alg": "HS384",
+            "jwk_local_path" : "./jwk.txt"
+        }
+    },
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/api/items",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "host": [
+            "http://127.0.0.1:3006"
+          ],
+          "extra_config": {
+            "qos/circuit-breaker": {
+              "interval": 20,
+              "name": "itemscb",
+              "timeout": 10,
+              "max_errors": 3,
+              "log_status_change": true
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "plugin": {
+    "pattern": ".so",
+    "folder": "/opt/krakend/plugins/"
+  }
+}

@@ -1,0 +1,65 @@
+version: "3"
+services:
+  krakend_ce:
+    # The :watch image restarts the service automatically when the configuration files change.
+    # Do not use this image in production, it's meant to speed up your testing and development.
+    image: devopsfaith/krakend:watch
+    volumes:
+      - ./config/krakend:/etc/krakend
+    ports:
+      - "1234:1234"
+      - "8080:8080"
+      - "8090:8090"
+    command: ["run", "-d", "-c", "/etc/krakend/krakend.json"]
+    depends_on:
+      - fake_api
+      - jaeger
+  grafana:
+    image: grafana/grafana:9.1.2
+    ports:
+      - "4000:3000"
+    volumes:
+      - "./config/grafana/datasources/all.yml:/etc/grafana/provisioning/datasources/all.yml"
+      - "./config/grafana/dashboards/all.yml:/etc/grafana/provisioning/dashboards/all.yml"
+      - "./config/grafana/krakend:/var/lib/grafana/dashboards/krakend"
+  influxdb:
+    image: influxdb:1.8.10
+    environment:
+      - "INFLUXDB_DB=krakend"
+      - "INFLUXDB_USER=krakend-dev"
+      - "INFLUXDB_USER_PASSWORD=pas5w0rd"
+      - "INFLUXDB_ADMIN_USER=admin"
+      - "INFLUXDB_ADMIN_PASSWORD=supersecretpassword"
+    ports:
+      - "8086:8086"
+  jaeger:
+    image: jaegertracing/all-in-one:1
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+  kibana:
+    image: kibana:8.4.1
+    ports:
+      - "5601:5601"
+  fake_api:
+    image: ghcr.io/lpereira/lwan:latest
+    volumes:
+      - ./data:/wwwroot
+    ports:
+      - "8000:8080"
+  jwt_revoke:
+    build:
+      context: images/jwt-revoker
+    ports:
+      - "9000:8080"
+    depends_on:
+      - krakend_ce
+    restart: always
+  auth:
+    build:
+      context: images/jwt-revoker
+    ports:
+      - "9000:8080"
+    depends_on:
+      - krakend_ce
+    restart: always
