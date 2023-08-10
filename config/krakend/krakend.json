@@ -1,22 +1,10 @@
 {
   "$schema": "https://www.krakend.io/schema/v3.json",
   "version": 3,
-  "name": "Paxi - API Gateway",
-  "timeout": "3000ms",
+  "name": "Paxi- API Gateway",
+  "timeout": "5000ms",
   "cache_ttl": "300s",
-  "extra_config": {
-    "qos/ratelimit/service": {
-      "max_rate": 3,
-      "capacity": 3,
-      "client_max_rate": 3,
-      "strategy": "header",
-      "key": "device-token",
-      "client_capacity": 3
-    },
-    "router": {
-      "disable_gzip": false
-    }
-  },
+
   "output_encoding": "json",
   "port": 8080,
   "debug_endpoint": true,
@@ -33,19 +21,22 @@
           "method": "POST",
           "disable_host_sanitize": false,
           "host": [
-            "http://127.0.0.1:3000"
+            "http://auth:3000"
           ]
         }
       ],
       "input_query_strings": []
     },
     {
-      "endpoint": "/v1/itmes",
+      "endpoint": "/v1/items",
       "method": "GET",
+      "input_headers": ["Authorization", "content-type"],
       "extra_config": {
         "auth/validator": {
+            "operation_debug": true,
             "alg": "HS384",
-            "jwk_local_path" : "./jwk.txt"
+            "jwk_local_path": "./jwk.txt",
+            "disable_jwk_security" : true
         }
     },
       "output_encoding": "json",
@@ -56,7 +47,7 @@
           "sd": "static",
           "method": "GET",
           "host": [
-            "http://127.0.0.1:3006"
+            "http://fake_api:3006"
           ],
           "extra_config": {
             "qos/circuit-breaker": {
@@ -71,6 +62,69 @@
       ]
     }
   ],
+  "extra_config": {
+    "qos/ratelimit/service": {
+      "max_rate": 3,
+      "capacity": 3,
+      "client_max_rate": 3,
+      "strategy": "header",
+      "key": "device-token",
+      "client_capacity": 3
+    },
+    "router": {
+      "disable_gzip": false
+    },
+    "telemetry/metrics": {
+      "collection_time": "30s",
+      "listen_address": ":8090"
+    },
+    "telemetry/influx": {
+      "address": "http://influxdb:8086",
+      "ttl": "25s",
+      "buffer_size": 100,
+      "username": "krakend-dev",
+      "password": "pas5w0rd"
+    },
+    "telemetry/logging": {
+      "level": "DEBUG",
+      "prefix": "[KRAKEND]",
+      "syslog": false,
+      "stdout": true
+    },
+    "telemetry/gelf": {
+      "address": "logstash:12201",
+      "enable_tcp": false
+    },
+    "telemetry/opencensus": {
+      "sample_rate": 100,
+      "reporting_period": 1,
+      "enabled_layers": {
+        "backend": true,
+        "router": true
+      },
+      "exporters": {
+        "jaeger": {
+          "endpoint": "http://jaeger:14268/api/traces",
+          "service_name": "krakend"
+        }
+      }
+    },
+    "security/cors": {
+      "allow_origins": ["*"],
+      "allow_methods": ["POST", "GET"],
+      "allow_headers": ["Origin", "Authorization", "Content-Type"],
+      "expose_headers": ["Content-Length"],
+      "max_age": "12h"
+    },
+    "auth/revoker": {
+      "N": 10000000,
+      "P": 0.0000001,
+      "hash_name": "optimal",
+      "TTL": 1500,
+      "port": 1234,
+      "token_keys": ["jti"]
+    }
+  },
   "plugin": {
     "pattern": ".so",
     "folder": "/opt/krakend/plugins/"

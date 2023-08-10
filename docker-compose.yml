@@ -6,8 +6,9 @@ services:
     image: devopsfaith/krakend:watch
     volumes:
       - ./config/krakend:/etc/krakend
+    expose:
+      - "1234"
     ports:
-      - "1234:1234"
       - "8080:8080"
       - "8090:8090"
     command: ["run", "-d", "-c", "/etc/krakend/krakend.json"]
@@ -42,24 +43,23 @@ services:
     ports:
       - "5601:5601"
   fake_api:
-    image: ghcr.io/lpereira/lwan:latest
-    volumes:
-      - ./data:/wwwroot
-    ports:
-      - "8000:8080"
+    build:
+      context: images/MockiMouse-fakeapi
+    expose:
+      - "3006"
   jwt_revoke:
     build:
       context: images/jwt-revoker
     ports:
-      - "9000:8080"
+      - "9009:8080"
     depends_on:
       - krakend_ce
     restart: always
   auth:
     build:
-      context: images/jwt-revoker
+      context: images/web-service
     ports:
-      - "9000:8080"
+      - "9010:3000"
     depends_on:
       - krakend_ce
     restart: always

@@ -1,0 +1,191 @@
+MockServer :
+ contextPath : /api
+ port : 3006
+ staticFilesPath : /assets
+ endpoints :
+  - name : Login endpoint
+    path : /login
+    accepts : application/json
+    method : POST
+    delay : 3000
+    scenarios :
+     - description : When credintial is valid
+       condition :
+         param :
+            - name : username
+              type : body
+              operand : equal
+              value : admin
+            - name : password
+              type : body
+              operand : equal
+              value : 1234
+       response: 
+        - file://helloWorld.json
+       
+     - description : When credintial is valid
+       condition :
+          param :
+            - name : username
+              type : body
+              operand : equal
+              value : admin
+            - name : password
+              type : body
+              operand : notEqual
+              value : 1234
+       response : 
+        - file://invalidCredintial.json
+       status : 200
+
+  - name : Home menu endpoint
+    path : /home
+    method : GET
+    delay : 0
+    scenarios :
+     - description : Agent is firefox
+       condition :
+         param :
+            - name : User-Agent
+              type : header
+              operand : contain
+              value : Mozilla
+       response: 
+         - Hello FireFox
+         - Bye Chrome
+       contentType : text/html; charset=utf-8
+       status : 200
+  - name : Profile endpoint
+    path : /profile/:personId
+    accepts : text/plain
+    method : GET
+    delay : 0
+    scenarios :
+     - description : retrieve a person by id when exist
+       condition :
+         param :
+            - name : personId
+              type : path
+              operand : equal
+              value : 1
+       response: 
+        - "{\"id\" : 1, \"name\" : \"Ali\" }"
+       contentType : application/json; charset=utf-8
+       status : 200
+
+     - description : retrieve a person by id when not exist
+       condition :
+         param :
+            - name : personId
+              type : path
+              operand : notEqual
+              value : 1
+       response: 
+         - "{\"message\" : \"no found\" }"
+       status : 404
+  - name : Products list Endpoint
+    path : /productList
+    accepts : text/plain
+    method : GET
+    delay : 0
+    scenarios :
+     - description : list products limit 2
+       condition :
+         param :
+            - name : limit
+              type : query
+              operand : equal
+              value : 2
+       response: 
+         - file://prodcut_limit2.json
+       contentType : application/json; charset=utf-8
+       status : 200
+
+     - description : list products limit 4
+       condition :
+         param :
+            - name : limit
+              type : query
+              operand : equal
+              value : 4
+       response:
+         - file://prodcut_limit4.json
+       contentType : application/json; charset=utf-8
+       status : 200
+
+  - name : Best movie endpoint
+    path : /bestMovies
+    method : GET
+    delay : 1000
+    scenarios :
+     - description : no condition, always show same response
+       response:
+         - Hi there, it is a general endpoint, no condition
+       contentType : text/html
+       status : 200
+  
+  - name : items for react test
+    path : /items
+    method : GET
+    delay : 3000
+    scenarios :
+      - description : single response scenario
+        response : 
+          - file://items.json
+        contentType : application/json
+        status : 200 
+
+  - name : Assignee endpoint
+    path : /getAssignee
+    method : POST
+    delay : 0
+    scenarios :
+     - description : assign job to rm1
+       condition :
+         param :
+            - name : job_id
+              type : body
+              operand : greaterThan
+              value : 10
+       response: 
+        - "{\"assignee\" : \"rm1\" }"
+       contentType : application/json; charset=utf-8
+       status : 200
+     - description : assign job to sell2
+       condition :
+         param :
+            - name : job_id
+              type : body
+              operand : lessEqual
+              value : 10
+       response: 
+        - "{\"assignee\" : \"sell2\" }"
+       contentType : application/json; charset=utf-8
+       status : 200
+  - name : Student
+    path : /student
+    method : POST
+    delay : 0
+    scenarios :
+     - description : student
+       condition :
+         param :
+            - name : id
+              type : form
+              operand : equal
+              value : 10
+       response: 
+        - "{\"name\" : \"rm1\", \"age\" : 10 }"
+       contentType : application/json; charset=utf-8
+       status : 200
+     - description : assign job to sell2
+       condition :
+         param :
+            - name : id
+              type : form
+              operand : equal
+              value : 11
+       response: 
+          - "{\"name\" : \"Bi Bi\", \"age\" : 25 }"
+       contentType : application/json; charset=utf-8
+       status : 200

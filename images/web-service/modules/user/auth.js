@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
 
 
 // Secret key for JWT
-const secretKey = '5dfr#38gfdgdg%9d5bghf8hilkj4mnb3vclytdsxcvbh3y10tfvbnjuytrdxcny$#';
+const secretKey = 'FdFYFzERwC2uCBB46pZQi4GG85LujR8obt-KWRBICVQ';
 
 // Middleware for JWT authentication
 exports.authenticateToken = function (req, res, next) {
@@ -60,9 +60,9 @@ exports.authenticateToken = function (req, res, next) {
                        
                         //////
                         user = { userId : UserID, kid : 'sim2' };
-
-                        const accessToken = jwt.sign(user, secretKey, { expiresIn: '30m', algorithm:  "HS384" });
-                        const refreshToken = jwt.sign(user, secretKey, { expiresIn: '60d', algorithm:  "HS384" });
+                        
+                        const accessToken = jwt.sign(user, secretKey, { expiresIn: '30m', algorithm:  "HS384", header: {kid: 'sim2'} });
+                        const refreshToken = jwt.sign(user, secretKey, { expiresIn: '60d', algorithm:  "HS384", header: {kid: 'sim2'}  });
                       
                         // Save the refresh token to a database or other storage mechanism
                       
